@@ -1,0 +1,32 @@
+ARG nvidia_cuda_version=12.2.2-devel-ubuntu22.04
+
+FROM nvidia/cuda:${nvidia_cuda_version}
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV LANG=en_US.UTF-8
+
+SHELL ["/bin/bash", "-c"]
+
+RUN apt-get update -y && \
+    apt-get install -y --no-install-recommends \
+        curl \
+        software-properties-common \
+        lsb-release && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# ROS2 (https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debians.html)
+RUN curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
+RUN echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | tee /etc/apt/sources.list.d/ros2.list > /dev/null
+RUN apt-get update -y && \
+    apt-get install -y --no-install-recommends \
+        ros-humble-desktop \
+        python3-rosdep \
+        python3-colcon-common-extensions && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN echo "source /opt/ros/humble/setup.bash" >> /root/.bashrc
+
+WORKDIR /root
+CMD ["/bin/bash"]
